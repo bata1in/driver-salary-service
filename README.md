@@ -8,13 +8,13 @@
 
 ## Git
 
-Текущий `origin` настроен на приватный bare-репозиторий на сервере:
+Текущий `origin` настроен на GitHub:
 
 ```bash
-codex@81.177.141.63:/home/codex/repos/driver-salary-service.git
+https://github.com/bata1in/driver-salary-service.git
 ```
 
-Рабочий процесс, ветки, теги деплоя и перенос на будущий GitHub/GitLab описаны в [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md#git-workflow).
+Серверный bare-репозиторий сохранен отдельным remote `server`. Рабочий процесс, ветки и теги деплоя описаны в [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md#git-workflow).
 
 ## Быстрый старт
 

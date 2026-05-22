@@ -153,15 +153,16 @@ docker compose -p driver_salary logs --tail=120 app
 
 ## Git Workflow
 
-Локальный репозиторий уже инициализирован. Текущий удаленный репозиторий:
+Локальный репозиторий уже инициализирован. Текущие удаленные репозитории:
 
 ```text
-origin: codex@81.177.141.63:/home/codex/repos/driver-salary-service.git
+origin: https://github.com/bata1in/driver-salary-service.git
+server: codex@81.177.141.63:/home/codex/repos/driver-salary-service.git
 branch: main
 tag: deploy-2026-05-22
 ```
 
-Это bare-репозиторий на сервере, доступный по SSH. Он приватный на уровне серверного доступа и нужен как центральная точка хранения истории, пока не создан GitHub/GitLab-репозиторий.
+`origin` - основной репозиторий на GitHub. `server` - bare-репозиторий на production-сервере, доступный по SSH; он оставлен как резервная копия истории.
 
 Локально для этого проекта настроен отдельный SSH-ключ:
 
@@ -169,7 +170,7 @@ tag: deploy-2026-05-22
 ~/.ssh/driver_salary_git_ed25519
 ```
 
-Ключ не хранить в репозитории. Репозиторий использует его через локальную настройку `core.sshCommand`.
+Ключ не хранить в репозитории. Он нужен для remote `server`. Для `origin` нужна обычная GitHub-аутентификация через HTTPS token, Git Credential Manager, GitHub CLI или SSH-remote.
 
 Обычный рабочий цикл:
 
@@ -194,13 +195,13 @@ git push -u origin codex/<short-task-name>
 ```bash
 git tag deploy-YYYY-MM-DD
 git push origin main --tags
+git push server main --tags
 ```
 
-Если позже будет создан GitHub/GitLab-репозиторий, историю можно перенести без потери коммитов:
+Если GitHub-аутентификация на локальной машине еще не настроена, `origin` будет доступен только на чтение. Серверный remote при этом продолжит работать по локально настроенному SSH-ключу:
 
 ```bash
-git remote add github git@github.com:<owner>/driver-salary-service.git
-git push github main --tags
+git push server main --tags
 ```
 
 ## Деплой
