@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% macro threshold_table(kind, title, brackets, min_attr) %}
+  <fieldset class="bracket-editor" data-bracket-editor>
+    <legend>{{ title }}</legend>
+    <table class="compact bracket-table">
+      <thead>
+        <tr>
+          <th>От</th>
+          <th class="num">Надбавка, руб</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bracket in brackets %}
+          <tr>
+            <td>
+              <input
+                type="number"
+                name="{{ kind }}_min_values"
+                value="{{ bracket|attr(min_attr) }}"
+                min="0"
+                step="{{ '1' if kind == 'point' else '0.001' }}"
+                required
+              >
+            </td>
+            <td>
+              <input type="number" name="{{ kind }}_amounts" value="{{ bracket.amount }}" step="1" required>
+            </td>
+            <td class="actions-cell">
+              <button type="button" class="secondary compact-button" data-remove-bracket>Убрать</button>
+            </td>
+          </tr>
+        {% endfor %}
+        <tr>
+          <td>
+            <input type="number" name="{{ kind }}_min_values" min="0" step="{{ '1' if kind == 'point' else '0.001' }}">
+          </td>
+          <td><input type="number" name="{{ kind }}_amounts" step="1"></td>
+          <td class="actions-cell">
+            <button type="button" class="secondary compact-button" data-remove-bracket>Убрать</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <button type="button" class="secondary" data-add-bracket data-kind="{{ kind }}">Добавить порог</button>
+  </fieldset>
+{% endmacro %}
+
+{% block content %}
+  <section class="settings-layout">
+    <div class="settings-list">
+      <h1>Тарифные версии</h1>
+      {% for row in tariff_rows %}
+        {% set tariff = row.tariff %}
+        <section class="tariff-panel">
+          <header class="tariff-panel-header">
+            <h2>{{ tariff.effective_from|date_ru }}</h2>
+            {% if row.can_edit %}
+              <span class="status editable">Редактируется</span>
+            {% else %}
+              <span class="status locked">Только просмотр</span>
+            {% endif %}
+          </header>
+          {% if row.can_edit %}
+            <form class="tariff-form" method="post" action="/settings/tariffs/{{ tariff.id }}">
+              <div class="settings-fields">
+                <label>
+                  Действует с
+                  <input type="date" name="effective_from" value="{{ tariff.effective_from.isoformat() }}" required>
+                </label>
+                <label>
+                  Базовая ставка
+                  <input type="number" step="1" name="base_daily_rate" value="{{ tariff.base_daily_rate }}" required>
+                </label>
+                <label>
+                  Конец смены
+                  <input type="time" name="shift_end_time" value="{{ tariff.shift_end_time.strftime("%H:%M") }}" required>
+                </label>
+                <label>
+                  Переработка/час
+                  <input type="number" step="1" name="overtime_hourly_rate" value="{{ tariff.overtime_hourly_rate }}" required>
+                </label>
+              </div>
+              <div class="bracket-grid">
+                {{ threshold_table("point", "Точки", tariff.point_brackets, "min_points") }}
+                {{ threshold_table("weight", "Вес, кг", tariff.weight_brackets, "min_weight_kg") }}
+              </div>
+              <button type="submit">Сохранить тариф</button>
+            </form>
+          {% else %}
+            <div class="muted tariff-lock">{{ row.lock_reason }}</div>
+            <table class="compact">
+              <thead>
+                <tr>
+                  <th>База</th>
+                  <th>Конец смены</th>
+                  <th>Переработка/час</th>
+                  <th>Точки</th>
+                  <th>Вес</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{{ tariff.base_daily_rate|money }}</td>
+                  <td>{{ tariff.shift_end_time.strftime("%H:%M") }}</td>
+                  <td>{{ tariff.overtime_hourly_rate|money }}</td>
+                  <td>
+                    {% for bracket in tariff.point_brackets %}
+                      <div>от {{ bracket.min_points }}: {{ bracket.amount|money }}</div>
+                    {% else %}
+                      <span class="muted">нет</span>
+                    {% endfor %}
+                  </td>
+                  <td>
+                    {% for bracket in tariff.weight_brackets %}
+                      <div>от {{ bracket.min_weight_kg|weight }}: {{ bracket.amount|money }}</div>
+                    {% else %}
+                      <span class="muted">нет</span>
+                    {% endfor %}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          {% endif %}
+        </section>
+      {% endfor %}
+    </div>
+
+    <form class="settings-form" method="post" action="/settings/tariffs">
+      <h2>Новая версия</h2>
+      <label>
+        Действует с
+        <input type="date" name="effective_from" required>
+      </label>
+      <label>
+        Базовая ставка
+        <input type="number" step="1" name="base_daily_rate" value="{{ latest_tariff.base_daily_rate if latest_tariff else 4000 }}" required>
+      </label>
+      <label>
+        Конец смены
+        <input type="time" name="shift_end_time" value="{{ latest_tariff.shift_end_time.strftime("%H:%M") if latest_tariff else "18:00" }}" required>
+      </label>
+      <label>
+        Переработка/час
+        <input type="number" step="1" name="overtime_hourly_rate" value="{{ latest_tariff.overtime_hourly_rate if latest_tariff else 0 }}" required>
+      </label>
+      <div class="bracket-grid single">
+        {{ threshold_table("point", "Точки", latest_tariff.point_brackets if latest_tariff else [], "min_points") }}
+        {{ threshold_table("weight", "Вес, кг", latest_tariff.weight_brackets if latest_tariff else [], "min_weight_kg") }}
+      </div>
+      <button type="submit">Создать тариф</button>
+    </form>
+  </section>
+{% endblock %}

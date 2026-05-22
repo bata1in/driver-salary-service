@@ -1,0 +1,41 @@
+<h2 id="driver-detail-title">{{ days[0].driver.name }}</h2>
+<div class="detail-list">
+  {% for day in days %}
+    <details open>
+      <summary>
+        <span>{{ day.delivery_date|date_ru }}</span>
+        <span>{{ day.total_amount|money }} руб</span>
+      </summary>
+      <dl class="day-kpis">
+        <div><dt>Маршруты</dt><dd>{{ day.route_count }}</dd></div>
+        <div><dt>Заявки</dt><dd>{{ day.request_count }}</dd></div>
+        <div class="paired"><dt>Точки</dt><dd>{{ day.point_count }}</dd><dt>Доплата</dt><dd>{{ day.point_bonus|money }}</dd></div>
+        <div><dt>Заборы</dt><dd>{{ day.pickup_count }}</dd></div>
+        <div class="paired"><dt>Вес</dt><dd>{{ day.weight_kg|weight }} кг</dd><dt>Доплата</dt><dd>{{ day.weight_bonus|money }}</dd></div>
+        <div><dt>База</dt><dd>{{ day.base_amount|money }}</dd></div>
+        <div><dt>Переработка</dt><dd>{{ day.overtime_amount|money }}</dd></div>
+        <div><dt>Тариф с</dt><dd>{{ day.tariff_version.effective_from.strftime("%d.%m.%Y") }}</dd></div>
+      </dl>
+      <table class="compact">
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>Контрагент</th>
+            <th>Время по приложению</th>
+            <th>Время отметки</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in day.details %}
+            <tr class="{{ 'pickup-row' if item.is_pickup else '' }}">
+              <td>{{ (item.route_date or day.delivery_date)|date_ru }}</td>
+              <td>{{ item.counterparty_name or item.address_raw }}</td>
+              <td>{{ item.delivered_at|detail_time(item.route_date or day.delivery_date) }}</td>
+              <td>{{ item.marked_at|detail_time(item.route_date or day.delivery_date) }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </details>
+  {% endfor %}
+</div>

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="toolbar">
+    <h1>Синхронизации</h1>
+    <form class="period-form" method="post" action="/syncs/run">
+      <label>
+        Начало
+        <input type="date" name="start" value="{{ start.isoformat() }}">
+      </label>
+      <label>
+        Конец
+        <input type="date" name="end" value="{{ end.isoformat() }}">
+      </label>
+      <button type="submit">Синхронизировать 1С</button>
+    </form>
+  </section>
+  <table>
+    <thead>
+      <tr>
+        <th>Начало</th>
+        <th>Период</th>
+        <th>Статус</th>
+        <th class="num">Добавлено</th>
+        <th class="num">Обновлено</th>
+        <th class="num">Ошибки</th>
+        <th>Детали</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sync in syncs %}
+        <tr>
+          <td>{{ sync.started_at.strftime("%d.%m.%Y %H:%M") }}</td>
+          <td>{{ sync.period_start.strftime("%d.%m.%Y") }} - {{ sync.period_end.strftime("%d.%m.%Y") }}</td>
+          <td><span class="status {{ sync.status }}">{{ sync.status }}</span></td>
+          <td class="num">{{ sync.added_count|number }}</td>
+          <td class="num">{{ sync.updated_count|number }}</td>
+          <td class="num">{{ sync.error_count|number }}</td>
+          <td>
+            {% for error in sync.errors %}
+              <div>{{ error }}</div>
+            {% endfor %}
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="7" class="empty">Синхронизаций пока нет</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

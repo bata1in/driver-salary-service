@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+  <section class="toolbar">
+    <form class="period-form" method="get" action="/salary">
+      <label>
+        Начало
+        <input type="date" name="start" value="{{ start.isoformat() }}">
+      </label>
+      <label>
+        Конец
+        <input type="date" name="end" value="{{ end.isoformat() }}">
+      </label>
+      <button type="submit">Показать</button>
+    </form>
+    <form method="post" action="/salary/recalculate">
+      <input type="hidden" name="start" value="{{ start.isoformat() }}">
+      <input type="hidden" name="end" value="{{ end.isoformat() }}">
+      <button type="submit">Пересчитать</button>
+    </form>
+  </section>
+
+  <section class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Водитель</th>
+          <th class="num">Дни</th>
+          <th class="num">Маршруты</th>
+          <th class="num">Заявки</th>
+          <th class="num">Точки</th>
+          <th class="num">Заборы</th>
+          <th class="num">Вес, кг</th>
+          <th class="num">Итого, руб</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in summary %}
+          <tr>
+            <td>{{ row.driver_name }}</td>
+            <td class="num">{{ row.day_count|number }}</td>
+            <td class="num">{{ row.route_count|number }}</td>
+            <td class="num">{{ row.request_count|number }}</td>
+            <td class="num">{{ row.point_count|number }}</td>
+            <td class="num">{{ row.pickup_count|number }}</td>
+            <td class="num">{{ row.weight_kg|weight }}</td>
+            <td class="num strong">{{ row.total_amount|money }}</td>
+            <td class="actions-cell">
+              <button
+                type="button"
+                hx-get="/salary/drivers/{{ row.driver_id }}?start={{ start.isoformat() }}&end={{ end.isoformat() }}"
+                hx-target="#driver-detail"
+                hx-dialog="#driver-dialog"
+                hx-swap="innerHTML"
+              >Дни</button>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="9" class="empty">Нет расчетных дней за выбранный период</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <dialog id="driver-dialog" class="detail-dialog" aria-labelledby="driver-detail-title">
+    <div class="dialog-shell">
+      <button type="button" class="dialog-close" data-dialog-close aria-label="Закрыть">×</button>
+      <div id="driver-detail" class="detail-pane">
+        <div class="empty">Загрузка детализации</div>
+      </div>
+    </div>
+  </dialog>
+{% endblock %}
