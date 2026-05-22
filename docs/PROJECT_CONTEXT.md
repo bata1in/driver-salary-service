@@ -151,6 +151,58 @@ docker compose -p driver_salary logs --tail=120 app
 
 Используй явное имя compose-проекта `driver_salary`: локальная папка содержит кириллицу, и авто-имя проекта Docker Compose может быть неудобным.
 
+## Git Workflow
+
+Локальный репозиторий уже инициализирован. Текущий удаленный репозиторий:
+
+```text
+origin: codex@81.177.141.63:/home/codex/repos/driver-salary-service.git
+branch: main
+tag: deploy-2026-05-22
+```
+
+Это bare-репозиторий на сервере, доступный по SSH. Он приватный на уровне серверного доступа и нужен как центральная точка хранения истории, пока не создан GitHub/GitLab-репозиторий.
+
+Локально для этого проекта настроен отдельный SSH-ключ:
+
+```text
+~/.ssh/driver_salary_git_ed25519
+```
+
+Ключ не хранить в репозитории. Репозиторий использует его через локальную настройку `core.sshCommand`.
+
+Обычный рабочий цикл:
+
+```bash
+git status
+git switch main
+git pull --ff-only
+git switch -c codex/<short-task-name>
+
+# изменения, затем проверки
+python3 -m pytest
+
+git add <files>
+git commit -m "Короткое описание изменения"
+git push -u origin codex/<short-task-name>
+```
+
+Для небольших срочных правок можно коммитить прямо в `main`, но перед этим проверить `git status`, запустить тесты и сделать `git pull --ff-only`.
+
+После успешного деплоя фиксируй точку тегом:
+
+```bash
+git tag deploy-YYYY-MM-DD
+git push origin main --tags
+```
+
+Если позже будет создан GitHub/GitLab-репозиторий, историю можно перенести без потери коммитов:
+
+```bash
+git remote add github git@github.com:<owner>/driver-salary-service.git
+git push github main --tags
+```
+
 ## Деплой
 
 Production-сервер:

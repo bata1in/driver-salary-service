@@ -6,6 +6,16 @@
 
 Перед продолжением разработки прочитайте [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md). Там собраны карта файлов, текущая логика, состояние серверного деплоя, HTTPS/DNSSEC и важные команды, чтобы не перечитывать всю папку заново.
 
+## Git
+
+Текущий `origin` настроен на приватный bare-репозиторий на сервере:
+
+```bash
+codex@81.177.141.63:/home/codex/repos/driver-salary-service.git
+```
+
+Рабочий процесс, ветки, теги деплоя и перенос на будущий GitHub/GitLab описаны в [`docs/PROJECT_CONTEXT.md`](docs/PROJECT_CONTEXT.md#git-workflow).
+
 ## Быстрый старт
 
 ```bash
